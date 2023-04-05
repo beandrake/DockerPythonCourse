@@ -1,0 +1,12 @@
+services:
+  productservice:
+    build: product-service
+    # ports:  # removed when we added the nginx part below, because the nginx will take care of this for us
+    #  - "5000:5000"
+
+
+  web:
+    build: nginx
+    ports:
+      - "80:80" # http
+
