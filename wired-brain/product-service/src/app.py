@@ -1,64 +1,63 @@
 from flask import Flask, jsonify, request
+from db import db
+from Product import Product
 
-products = [
-	{'id':1, 'name':'Product 1'},
-	{'id':2, 'name':'Product 2'},
-]
 
 app = Flask(__name__) # makes a new flask app that is this script
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:password@db/products' # connect to mysql in the db container, using username root and password password, and use the products data
+db.init_app(app)
 
 
 # curl -v http://localhost:80/products
 @app.route('/products')
 def get_products():
+	products = [ product.json for product in Product.find_all() ] #iterates over list of products and returns a new list that contains all products as json
 	return jsonify(products)	#jsonify converts our Python dictionary to a JSON string so Flask can use it
 
 
 # curl -v http://localhost:80/product/1
 @app.route('/product/<int:id>')
 def get_product(id):
-	product_list = [product for product in products if product['id'] == id] #iterates over list of products and returns a new list that only contains the id of the product
-	if len(product_list) == 0:
-		return f'Product with id {id} not found', 404
-	return jsonify(product_list[0]), 200
+	product = Product.find_by_id(id)
+	if product:
+		return jsonify(product.json), 200
+	return f'Product with id {id} not found', 404
+	
 
 
 # (Linux version)   curl --header "Content-Type: application/json" --request POST --data '{"name": "Product 3"}' -v http://localhost:80/product
 # (Windows version) curl --header "Content-Type: application/json" --request POST --data "{\"name\": \"Product 3\"}" -v http://localhost:80/product
 @app.route('/product', methods=['POST'])
 def post_product():
+	print('POST /product')
+	
 	# Retrieve the product from the request body
 	request_product = request.json # request object contains all the info about the request
 
-	# Generate and ID for the post
-	new_id = max( [product['id'] for product in products] ) + 1
+	# Create a new Product
+	product = Product(None, request_product['name'])
 
-	# Create a new product
-	new_product = {
-		'id': new_id,
-		'name': request_product['name']
-	}
+	# Save the Product to the database
+	product.save_to_db()
 
-	# Append the new product to our product list
-	products.append(new_product)
-
-	# Return the new product back to the client
-	return jsonify(new_product), 201 # 201 = "Created"
+	# Return jsonified Product
+	return jsonify(product.json), 201 # 201 = "Created"
 
 
 # (Linux version)   curl --header "Content-Type: application/json" --request PUT --data '{"name": "Updated Product 2"}' -v http://localhost:80/product/2
 # (Windows version) curl --header "Content-Type: application/json" --request PUT --data "{\"name\": \"Updated Product 2\"}" -v http://localhost:80/product/2
 @app.route('/product/<int:id>', methods=['PUT'])
-def put_product(id):
-	# Get the request payload
-	updated_product = request.json
+def put_product(id):	
+	existing_product = Product.find_by_id(id)
 
-	# Find the product with the specified ID
-	for product in products:
-		if product['id'] == id:
-			# Update the product name
-			product['name'] = updated_product['name']
-			return jsonify(product), 200
+	if existing_product:
+		# Get the request payload
+		updated_product = request.json
+
+		existing_product.name = updated_product['name']
+		existing_product.save_to_db()
+
+		return jsonify(existing_product.json), 200
 
 	return f'Product with id {id} not found', 404
 
@@ -66,11 +65,11 @@ def put_product(id):
 # curl --request DELETE -v http://localhost:80/product/2
 @app.route('/product/<int:id>', methods=['DELETE'])
 def delete_product(id):
-	# Find the product with the specified ID
-	product_list = [product for product in products if product['id'] == id]
-	if len(product_list) == 1:
-		products.remove(product_list[0])
-		return f'Product with id {id} deleted', 200
+	existing_product = Product.find_by_id(id)
+	
+	if existing_product:
+		existing_product.delete_from_db()
+		return jsonify( {f'Deleted product with id {id}'} ), 200
 
 	return f'Product with id {id} not found', 404
 
