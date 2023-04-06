@@ -4,9 +4,16 @@ services:
     # ports:  # removed when we added the nginx part below, because the nginx will take care of this for us
     #  - "5000:5000"
 
-
   web:
     build: nginx
     ports:
       - "80:80" # http
+
+  db:
+    image: mysql
+    command: "--init-file /data/application/init.sql --default-authentication-plugin=mysql_native_password"
+    volumes:
+      - "./db/init.sql:/data/application/init.sql"
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
 
