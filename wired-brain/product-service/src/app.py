@@ -69,7 +69,7 @@ def delete_product(id):
 	
 	if existing_product:
 		existing_product.delete_from_db()
-		return jsonify( {f'Deleted product with id {id}'} ), 200
+		return jsonify( {'message': f'Deleted product with id {id}'} ), 200
 
 	return f'Product with id {id} not found', 404
 
