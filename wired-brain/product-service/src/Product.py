@@ -1,4 +1,8 @@
+import logging
 from db import db
+
+# Get a logger for this module
+log = logging.getLogger(__name__) 
 
 
 class Product(db.Model):
@@ -13,17 +17,21 @@ class Product(db.Model):
 
 	@classmethod
 	def find_by_id(cls, _id):
+		log.debug(f"Find product by id: {_id}")
 		return cls.query.get(_id)
 	
 	@classmethod
 	def find_all(cls):
+		log.debug(f"Query for all products")
 		return cls.query.all()
 	
 	def save_to_db(self):
+		log.debug(f"Save Product to database: id={self.id}, name={self.name}")
 		db.session.add(self)	# also does updates
 		db.session.commit()
 
 	def delete_from_db(self):
+		log.debug(f"Delete Product from database: id={self.id}, name={self.name}")
 		db.session.delete(self)
 		db.session.commit()
 	
