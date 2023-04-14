@@ -1,8 +1,14 @@
+secrets:
+  db_password:
+    file: db_password.txt
+
 services:
   productservice:
     build: product-service
     volumes:
       - "./config:/config"
+    secrets:
+      - db_password
     # ports:  # removed when we added the nginx part below, because the nginx will take care of this for us
     #  - "5000:5000"
 

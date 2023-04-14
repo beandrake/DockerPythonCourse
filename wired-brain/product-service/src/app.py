@@ -24,8 +24,10 @@ def get_database_url():
 
 	host     = database_configuration['host']
 	username = database_configuration['username']	
-	password = database_configuration['password']
 	database = database_configuration['database']
+
+	password_file = open('/run/secrets/db_password')
+	password = password_file.read()
 
 	database_url = f'mysql://{username}:{password}@{host}/{database}'
 	log.info(f"Connecting to database: {database_url}")
