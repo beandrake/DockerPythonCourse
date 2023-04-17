@@ -2,7 +2,7 @@ networks:   # this defines two different networks with different names that we c
   frontend:
   backend:
 
-secrets:
+secrets:    # makes certain files invisible except to the services that we specifically allow to see these secrets
   db_password:
     file: db_password.txt
 
@@ -11,6 +11,7 @@ services:
     build: product-service
     volumes:
       - "./config:/config"
+      - "./product-service/src:/code" # This allows us to change Python code while a container is running so we can debug and test on the fly.
     secrets:
       - db_password
     networks:
