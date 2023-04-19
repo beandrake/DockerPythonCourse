@@ -2,14 +2,25 @@ from flask import Flask, jsonify, request
 import logging.config
 from sqlalchemy import exc
 import configparser
+import debugpy
+import os
 from db import db
 from Product import Product
+
+HOST = "0.0.0.0"	# can accept connections from outside our container
 
 # Configure the logging package from the logging ini file
 logging.config.fileConfig('/config/logging.ini', disable_existing_loggers=False)
 
 # Get a logger for this module
 log = logging.getLogger(__name__) 
+
+# Setup debugger
+debug = os.getenv('DEBUG', 'False') # returns value of env variable passed as argument if found, if not found returns second argument
+if debug == 'True':
+	debugPort = 5678	# conventional port for debugging, but technically could be plenty of other values
+	debugpy.listen( (HOST, debugPort) )
+	log.info(f"Started debugger on port {debugPort}")
 
 
 def get_database_url():
@@ -138,4 +149,4 @@ def delete_product(id):
 
 
 if __name__ == '__main__':
-	app.run(debug=True, host='0.0.0.0') # This host makes it so that external machines can access this app; needed because a container considers things outside the container to be other machines!
+	app.run(debug=False, host=HOST) # This host makes it so that external machines can access this app; needed because a container considers things outside the container to be other machines!

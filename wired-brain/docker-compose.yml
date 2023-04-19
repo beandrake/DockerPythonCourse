@@ -17,9 +17,12 @@ services:
     networks:
       - frontend
       - backend
-    # ports:  # removed when we added the nginx part below, because the nginx will take care of this for us
-    #  - "5000:5000"
-
+    ports:
+      #  - "5000:5000"  # removed when we added the nginx part below, because the nginx will take care of this for us
+      - "5678:5678"
+    environment:  # sets environment variables
+      - DEBUG=True
+    
   web:
     build: nginx
     ports:
